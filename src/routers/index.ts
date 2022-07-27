@@ -1,15 +1,11 @@
 import { Router } from 'express';
 
-import {
-  deleteDeployment,
-  getDeployments,
-  getEnvironments,
-} from '../controllers';
+import { deploymentsRouter } from './deployments';
+import { environmentsRouter } from './environments';
 
-const _router = Router();
+const mainRouter = Router({ mergeParams: true });
 
-_router.get('/environments', getEnvironments);
-_router.get('/deployments', getDeployments);
-_router.delete('/deployments/:deployment_id', deleteDeployment);
+mainRouter.use('/deployments', deploymentsRouter);
+mainRouter.use('/environments', environmentsRouter);
 
-export const router = _router;
+export const router = mainRouter;

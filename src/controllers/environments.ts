@@ -1,12 +1,10 @@
 import { Request, Response } from 'express';
 import { Octokit } from 'octokit';
 
-import { config } from '../config';
-
-const { auth, owner, repo } = config;
-
 export const getEnvironments = async (req: Request, res: Response) => {
   try {
+    const { auth, owner, repo } = req;
+
     const octokit = new Octokit({ auth });
 
     const result = await octokit.request(
