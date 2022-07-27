@@ -2,10 +2,10 @@ import fetch from 'node-fetch';
 
 const baseUrl = 'https://api.github.com';
 
-interface Config {
-  auth: string;
-  owner: string;
-  repo: string;
+export interface Config {
+  access_token: string;
+  github_username: string;
+  github_repository: string;
 }
 
 interface Deployment {
@@ -28,14 +28,14 @@ export const getAllDeployments = async (
   config: Config,
 ): Promise<Deployment[] | null> => {
   try {
-    const { owner, repo, auth } = config;
+    const { github_username, github_repository, access_token } = config;
 
     const response = await fetch(
-      `${baseUrl}/repos/${owner}/${repo}/deployments?per_page=100`,
+      `${baseUrl}/repos/${github_username}/${github_repository}/deployments?per_page=100`,
       {
         headers: {
           Accept: 'application/vnd.github+json',
-          Authorization: `token ${auth}`,
+          Authorization: `token ${access_token}`,
         },
       },
     );
@@ -59,14 +59,20 @@ export const setDeploymentStatusById = async (
   },
 ): Promise<boolean> => {
   try {
-    const { owner, repo, auth, state, deployment_id } = config;
+    const {
+      github_username,
+      github_repository,
+      access_token,
+      state,
+      deployment_id,
+    } = config;
 
     await fetch(
-      `${baseUrl}/repos/${owner}/${repo}/deployments/${deployment_id}/statuses`,
+      `${baseUrl}/repos/${github_username}/${github_repository}/deployments/${deployment_id}/statuses`,
       {
         headers: {
           Accept: 'application/vnd.github+json',
-          Authorization: `token ${auth}`,
+          Authorization: `token ${access_token}`,
         },
         body: JSON.stringify({ state }),
       },
@@ -84,14 +90,15 @@ export const deleteDeploymentById = async (
   },
 ): Promise<boolean> => {
   try {
-    const { owner, repo, auth, deployment_id } = config;
+    const { github_username, github_repository, access_token, deployment_id } =
+      config;
 
     await fetch(
-      `${baseUrl}/repos/${owner}/${repo}/deployments/${deployment_id}`,
+      `${baseUrl}/repos/${github_username}/${github_repository}/deployments/${deployment_id}`,
       {
         headers: {
           Accept: 'application/vnd.github+json',
-          Authorization: `token ${auth}`,
+          Authorization: `token ${access_token}`,
         },
       },
     );

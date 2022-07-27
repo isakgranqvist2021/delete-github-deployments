@@ -1,13 +1,47 @@
-import express from 'express';
+import {
+  Config,
+  deleteDeploymentById,
+  getAllDeployments,
+  setDeploymentStatusById,
+} from './services';
 
-import { inactivateAndDeleteByEnvironment } from './controllers';
+const config: Config = {
+  access_token: '', // can be generated here: https://github.com/settings/tokens/new
+  github_username: '',
+  github_repository: '',
+};
 
-const app = express();
+const deleteAllDeployments = async () => {
+  const deployments = await getAllDeployments(config);
 
-app.use(express.json());
+  if (!deployments?.length) {
+    console.log('No deployments found');
+    process.exit(1);
+  }
 
-app.get('/start', inactivateAndDeleteByEnvironment);
+  const ids = await Promise.all(
+    deployments
+      .filter((deployment: any) => deployment.environment !== 'production')
+      .map(async (deployment: any) => {
+        const deployment_id = deployment.id;
 
-app.listen(3000, () => {
-  console.log('Server is listening on port 3000');
-});
+        await setDeploymentStatusById({
+          ...config,
+          state: 'inactive',
+          deployment_id,
+        });
+
+        await deleteDeploymentById({
+          ...config,
+          deployment_id,
+        });
+
+        return deployment.id;
+      }),
+  );
+
+  console.log(`Deleted ${ids.length} deployments`);
+  console.log('Done');
+};
+
+deleteAllDeployments();
