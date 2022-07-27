@@ -1,34 +1,75 @@
 import { Request, Response } from 'express';
 
 import {
-  deleteDeployment,
+  deleteDeploymentById,
   getAllDeployments,
-  inactivateDeployment,
+  setDeploymentStatusById,
 } from '../services';
+
+const validateBody = (body: any): string | null => {
+  if (!body.auth) {
+    return 'Missing key "auth"';
+  }
+
+  if (!body.owner) {
+    return 'Missing key "owner"';
+  }
+
+  if (!body.repo) {
+    return 'Missing key "repo"';
+  }
+
+  return null;
+};
 
 export const inactivateAndDeleteByEnvironment = async (
   req: Request,
   res: Response,
 ) => {
-  const { auth, owner, repo } = req;
+  const error = validateBody(req.body);
 
-  const deployments = await getAllDeployments(auth, owner, repo);
+  if (error) {
+    return res.json({
+      error,
+      statusCode: 400,
+      data: null,
+    });
+  }
 
-  await Promise.all(
+  const deployments = await getAllDeployments(req.body);
+
+  if (!deployments?.length) {
+    return res.json({
+      error: 'No deployments found',
+      statusCode: 404,
+      data: null,
+    });
+  }
+
+  const ids = await Promise.all(
     deployments
       .filter((deployment: any) => deployment.environment !== 'production')
       .map(async (deployment: any) => {
-        await inactivateDeployment(auth, owner, repo, deployment.id);
-        await deleteDeployment(auth, owner, repo, deployment.id);
+        const deployment_id = deployment.id;
 
-        console.log(`Deleted ${deployment.id}`);
-        return;
+        await setDeploymentStatusById({
+          ...req.body,
+          state: 'inactive',
+          deployment_id,
+        });
+
+        await deleteDeploymentById({
+          ...req.body,
+          deployment_id,
+        });
+
+        return deployment.id;
       }),
   );
 
-  res.json({
+  return res.json({
     error: null,
     statusCode: 200,
-    data: null,
+    data: ids,
   });
 };
