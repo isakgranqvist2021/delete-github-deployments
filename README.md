@@ -1,4 +1,4 @@
-update config in main.ts
+update config in src/main.ts
 
 ```typescript
 export interface Config {
