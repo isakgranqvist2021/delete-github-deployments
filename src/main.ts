@@ -1,5 +1,6 @@
 import {
   Config,
+  Deployment,
   deleteDeploymentById,
   getAllDeployments,
   setDeploymentStatusById,
@@ -11,7 +12,22 @@ const config: Config = {
   github_repository: '',
 };
 
-const deleteAllDeployments = async () => {
+const callback = async ({ id }: Deployment) => {
+  await setDeploymentStatusById({
+    ...config,
+    state: 'inactive',
+    deployment_id: id,
+  });
+
+  await deleteDeploymentById({
+    ...config,
+    deployment_id: id,
+  });
+
+  return id;
+};
+
+const main = async () => {
   const deployments = await getAllDeployments(config);
 
   if (!deployments?.length) {
@@ -19,29 +35,14 @@ const deleteAllDeployments = async () => {
     process.exit(1);
   }
 
-  const ids = await Promise.all(
-    deployments
-      .filter((deployment: any) => deployment.environment !== 'production')
-      .map(async (deployment: any) => {
-        const deployment_id = deployment.id;
-
-        await setDeploymentStatusById({
-          ...config,
-          state: 'inactive',
-          deployment_id,
-        });
-
-        await deleteDeploymentById({
-          ...config,
-          deployment_id,
-        });
-
-        return deployment.id;
-      }),
+  const _deployments = deployments.filter(
+    (deployment: any) => deployment.environment !== 'production',
   );
+
+  const ids = await Promise.all(_deployments.map(callback));
 
   console.log(`Deleted ${ids.length} deployments`);
   console.log('Done');
 };
 
-deleteAllDeployments();
+main();

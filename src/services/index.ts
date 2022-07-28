@@ -8,7 +8,7 @@ export interface Config {
   github_repository: string;
 }
 
-interface Deployment {
+export interface Deployment {
   url: string;
   id: string;
   node_id: string;
@@ -24,6 +24,14 @@ interface Deployment {
   production_environment: boolean;
 }
 
+type State =
+  | 'error'
+  | 'failure'
+  | 'inactive'
+  | 'in_progress'
+  | 'queued'
+  | 'pending';
+
 export const getAllDeployments = async (
   config: Config,
 ): Promise<Deployment[] | null> => {
@@ -31,7 +39,7 @@ export const getAllDeployments = async (
     const { github_username, github_repository, access_token } = config;
 
     const response = await fetch(
-      `${baseUrl}/repos/${github_username}/${github_repository}/deployments?per_page=100`,
+      `${baseUrl}/repos/${github_username}/${github_repository}/deployments`,
       {
         headers: {
           Accept: 'application/vnd.github+json',
@@ -41,22 +49,14 @@ export const getAllDeployments = async (
     );
 
     return await response.json();
-  } catch {
+  } catch (err) {
+    console.error(err);
     return null;
   }
 };
 
 export const setDeploymentStatusById = async (
-  config: Config & {
-    deployment_id: string;
-    state:
-      | 'error'
-      | 'failure'
-      | 'inactive'
-      | 'in_progress'
-      | 'queued'
-      | 'pending';
-  },
+  config: Config & { deployment_id: string; state: State },
 ): Promise<boolean> => {
   try {
     const {
@@ -79,7 +79,8 @@ export const setDeploymentStatusById = async (
     );
 
     return true;
-  } catch {
+  } catch (err) {
+    console.error(err);
     return false;
   }
 };
@@ -104,7 +105,8 @@ export const deleteDeploymentById = async (
     );
 
     return true;
-  } catch {
+  } catch (err) {
+    console.error(err);
     return false;
   }
 };
