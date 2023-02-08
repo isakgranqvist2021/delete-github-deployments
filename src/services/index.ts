@@ -70,6 +70,7 @@ export const setDeploymentStatusById = async (
     await fetch(
       `${baseUrl}/repos/${github_username}/${github_repository}/deployments/${deployment_id}/statuses`,
       {
+        method: 'POST',
         headers: {
           Accept: 'application/vnd.github+json',
           Authorization: `token ${access_token}`,
