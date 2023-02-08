@@ -1,3 +1,5 @@
+import 'dotenv/config';
+
 import {
   Config,
   Deployment,
@@ -7,9 +9,9 @@ import {
 } from './services';
 
 const config: Config = {
-  access_token: '', // can be generated here: https://github.com/settings/tokens/new
-  github_username: '',
-  github_repository: '',
+  access_token: process.env.ACCESS_TOKEN!,
+  github_username: process.env.GITHUB_USERNAME!,
+  github_repository: process.env.GITHUB_REPOSITORY!,
 };
 
 const callback = async ({ id }: Deployment) => {
