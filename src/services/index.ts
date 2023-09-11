@@ -67,7 +67,7 @@ export const setDeploymentStatusById = async (
       deployment_id,
     } = config;
 
-    await fetch(
+    const res = await fetch(
       `${baseUrl}/repos/${github_username}/${github_repository}/deployments/${deployment_id}/statuses`,
       {
         method: 'POST',
@@ -95,7 +95,7 @@ export const deleteDeploymentById = async (
     const { github_username, github_repository, access_token, deployment_id } =
       config;
 
-    await fetch(
+    const res = await fetch(
       `${baseUrl}/repos/${github_username}/${github_repository}/deployments/${deployment_id}`,
       {
         headers: {
